@@ -23,33 +23,40 @@ public class InventoryEvents implements Listener {
         double tax = OreMarket.main().getConfig().getDouble("tax", 0.0);
         return price - ((price/100) * tax);
     }
-    private void changePlayerBalance(double previous, HumanEntity player, boolean operation, int Slot) { // Buy
-        /**
-         @param previous = Ore Value before any changes
-         @param player = Player whose balance will be changes
-         @param operation = T=Add F=Remove money
-         @param slot = Slot's ore that's value will be affected
-         */
 
+    /**
+      Buy
+
+     @param previous = Ore Value before any changes
+     @param player = Player whose balance will be changes
+     @param operation = T=Add F=Remove money
+     @param Slot = Slot's ore that's value will be affected
+     */
+    private void changePlayerBalance(double previous, HumanEntity player, boolean operation, int Slot) {
         double total = calculateTotalWithTax(previous);
+        double targetPrice;
 
-        if (previous > 0) {
-            if (operation) {
-                OreMarket.getEconomy().withdrawPlayer((OfflinePlayer) player, previous));
-                OreMarket.main().getGuiConfig().set("items." + Slot + ".value",
-                        previous+(total*OreMarket.main().getConfig().getDouble("multiplier")));
-                        // 1000 + (120 x 0.01)
-                        // 1000 + 1.12
-                        // 1000 -> 1001.12
-            } else {
-                OreMarket.getEconomy().depositPlayer((OfflinePlayer) player, total);
-                OreMarket.main().getGuiConfig().set("items." + Slot + ".value",
-                        previous-(total*OreMarket.main().getConfig().getDouble("multiplier")));
-                        // 1000 - (80 x 0.01)
-                        // 1000 - 0.08
-                        // 1000 -> 999.92
+        if (operation) {
+            OreMarket.getEconomy().withdrawPlayer((OfflinePlayer) player, previous);
+            targetPrice = previous + (total * OreMarket.main().getConfig().getDouble("multiplier"));
+
+            // 1000 + (120 x 0.01)
+            // 1000 + 1.12
+            // 1000 -> 1001.12
+        } else {
+            OreMarket.getEconomy().depositPlayer((OfflinePlayer) player, total);
+            targetPrice = previous - (total * OreMarket.main().getConfig().getDouble("multiplier"));
+
+            if (targetPrice <= 0.0f) {
+                targetPrice = previous;
             }
+
+            // 1000 - (80 x 0.01)
+            // 1000 - 0.08
+            // 1000 -> 999.92
         }
+
+        OreMarket.main().getGuiConfig().set("items." + Slot + ".value", targetPrice);
         OreMarket.main().saveGuiConfig();
     }
     private double balance (HumanEntity Player) {
