@@ -47,8 +47,8 @@ public class InventoryEvents implements Listener {
             OreMarket.getEconomy().depositPlayer((OfflinePlayer) player, total);
             targetPrice = previous - (total * OreMarket.main().getConfig().getDouble("multiplier"));
 
-            if (targetPrice <= 0.0f) {
-                targetPrice = previous;
+            if (targetPrice < 1.0f) {
+                targetPrice = OreMarket.main().getConfig().getDouble("multiplier") * 100;
             }
 
             // 1000 - (80 x 0.01)
